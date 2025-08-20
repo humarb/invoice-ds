@@ -139,7 +139,10 @@
 
   <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
   <script>
-    let templateAB = null
+    const TEMPLATE_URL = './template.pdf';
+    const TEMPLATE_URL_PAID = './template-paid.pdf';
+    let templatePay = null;
+    let templatePaid = null;
     const items = [];
 
     const coords = {
@@ -204,12 +207,12 @@
     }
 
     async function generatePDF() {
-      if (!templateAB) {
+      if (!templatePay & !templatePaid) {
         alert('Upload template PDF terlebih dahulu');
         return;
       }
-
-      const doc = await PDFLib.PDFDocument.load(templateAB);
+      const templatePDF = document.getElementById('paid-status').checked ? templatePaid : templatePay;
+      const doc = await PDFLib.PDFDocument.load(templatePDF);
       const page = doc.getPages()[0];
       const font = await doc.embedFont(PDFLib.StandardFonts.Helvetica);
       const fontBold = await doc.embedFont(PDFLib.StandardFonts.HelveticaBold);
@@ -267,12 +270,6 @@
       URL.revokeObjectURL(a.href);
     }
 
-    document.getElementById('template').addEventListener('change', async e => {
-      const f = e.target.files[0];
-      if (f) {
-        templateAB = await f.arrayBuffer();
-      }
-    });
     document.getElementById('add-items').addEventListener('click', () => {
       items.push({ desc: 'Desc', area: 0, price: 0 });
       renderItems();
@@ -284,6 +281,14 @@
     document.getElementById('generate').addEventListener('click', generatePDF);
 
     (async function () {
+      const res = await fetch(TEMPLATE_URL);
+      if (!res.ok) throw new Error('Gagal memuat template: ' + res.status);
+      templatePay = await res.arrayBuffer();
+
+      const res2 = await fetch(TEMPLATE_URL);
+      if (!res2.ok) throw new Error('Gagal memuat template: ' + res2.status);
+      templatePaid = await res2.arrayBuffer();
+
       renderItems();
     })();
   </script>
