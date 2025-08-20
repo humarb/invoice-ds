@@ -285,7 +285,7 @@
       if (!res.ok) throw new Error('Gagal memuat template: ' + res.status);
       templatePay = await res.arrayBuffer();
 
-      const res2 = await fetch(TEMPLATE_URL);
+      const res2 = await fetch(TEMPLATE_URL_PAID);
       if (!res2.ok) throw new Error('Gagal memuat template: ' + res2.status);
       templatePaid = await res2.arrayBuffer();
 
