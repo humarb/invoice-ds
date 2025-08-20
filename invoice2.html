@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Invoice Maker – Kalibrasi Koordinat (Client‑Side)</title>
+  <style>
+    :root {
+      --line: #E2E8F0;
+      --muted: #475569;
+      --ink: #0f172a
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    body {
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      margin: 0;
+      background: #f8fafc;
+      color: var(--ink)
+    }
+
+    header {
+      padding: 12px 16px;
+      background: #fff;
+      border-bottom: 1px solid var(--line);
+      font-weight: 700
+    }
+
+    .wrap {
+      display: grid;
+      grid-template-columns: 480px 1fr;
+      gap: 16px;
+      padding: 16px
+    }
+
+    @media(max-width:1080px) {
+      .wrap {
+        grid-template-columns: 1fr
+      }
+    }
+
+    .card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 12px
+    }
+
+    .card .body {
+      padding: 14px
+    }
+
+    h2 {
+      margin: 0 0 8px;
+      font-size: 13px;
+      letter-spacing: .2px;
+      text-transform: uppercase;
+      color: var(--muted)
+    }
+
+    label {
+      font-size: 12px;
+      color: var(--muted);
+      display: block;
+      margin-bottom: 4px
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      font-size: 14px
+    }
+
+    textarea {
+      min-height: 60px;
+      resize: vertical
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px
+    }
+
+    .btn {
+      cursor: pointer;
+      border: 0;
+      background: #111827;
+      color: #fff;
+      font-weight: 600;
+      border-radius: 8px;
+      padding: 9px 12px
+    }
+
+    .btn.outline {
+      background: transparent;
+      color: #111827;
+      border: 1px solid var(--line)
+    }
+
+    .note {
+      font-size: 12px;
+      color: #64748b
+    }
+
+    .kv {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 6px
+    }
+
+    .xy {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px
+    }
+
+    .row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin: 6px 0
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse
+    }
+
+    th,
+    td {
+      font-size: 12px;
+      border-bottom: 1px solid var(--line);
+      padding: 6px
+    }
+
+    th {
+      color: var(--muted);
+      text-align: left
+    }
+
+    canvas {
+      border: 1px solid #cbd5e1;
+      max-width: 100%;
+      background: #fff
+    }
+
+    .hr {
+      height: 1px;
+      background: var(--line);
+      margin: 10px 0
+    }
+  </style>
+</head>
+
+<body>
+  <header>Invoice Dinus Studio</header>
+  <div class="wrap">
+    <section class="card">
+      <div class="body">
+        <h2>1) Upload Template PDF</h2>
+        <input type="file" id="fTemplate" accept="application/pdf" />
+
+        <div class="hr"></div>
+        <h2>2) Data Invoice</h2>
+        <div class="grid">
+          <div><label>Invoice Number</label><input id="fInvNo" placeholder="#2025-001" /></div>
+          <div><label>Tanggal</label><input id="fDate" type="date" /></div>
+          <div><label>Nama Client</label><input id="fClient" placeholder="Nama klien" /></div>
+          <div><label>Email Client</label><input id="fEmail" type="email" placeholder="email@klien.com" /></div>
+          <div><label>No HP Client</label><input id="fPhone" placeholder="08xxxxxxxxxx" /></div>
+          <div><label>Payment Terms</label><input id="fTerms" placeholder="7 DAYS" /></div>
+        </div>
+
+        <div class="hr"></div>
+        <h2>3) Produk</h2>
+        <div class="row">
+          <button class="btn" id="btnAdd">+ Tambah Produk</button>
+          <button class="btn outline" id="btnClear">Bersihkan</button>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th style="width:46%">Description</th>
+              <th style="width:18%">Area (m²)</th>
+              <th style="width:18%">Price</th>
+              <th style="width:18%"></th>
+            </tr>
+          </thead>
+          <tbody id="itemsBody"></tbody>
+        </table>
+
+        <div class="hr"></div>
+        <div class="row"><button class="btn" id="btnGen" disabled>Generate & Download PDF</button></div>
+      </div>
+    </section>
+  </div>
+
+  <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+  <script>
+    let templateAB = null
+    const items = [];
+
+    const coords = {
+      invNo: { x: 140, y: 181 },
+      date: { x: 140, y: 202 },
+      client: { x: 540, y: 181, align: 'right' },
+      email: { x: 540, y: 202, align: 'right' },
+      phone: { x: 540, y: 223, align: 'right' },
+      terms: { x: 161, y: 773.5 },
+      products: { yStart: 320, row: 18, xDesc: 60, xArea: 378, xPrice: 538, priceAlign: 'right' },
+      totalPrice: { x: 538, y: 470, align: 'right' }
+    };
+
+    async function loadTemplate(file) {
+      templateAB = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: templateAB }).promise;
+      document.getElementById('btnGen').disabled = false;
+    }
+
+    // ====== HELPERS ======
+    function val(id) { return (document.getElementById(id).value || '').trim(); }
+    function toPdfY(page, yTop) { return page.getHeight() - yTop; }
+    const fmtIDR = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 });
+
+    // ====== ITEMS UI ======
+    function renderItems() {
+      const body = document.getElementById('itemsBody');
+      body.innerHTML = '';
+      items.forEach((it, i) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+        <td><input value="${it.desc}" data-i="${i}" class="desc" placeholder="Nama produk"></td>
+        <td><input type="number" value="${it.area}" data-i="${i}" class="area"></td>
+        <td><input type="number" value="${it.price}" data-i="${i}" class="price"></td>
+        <td><button class="btn outline" data-i="${i}">Hapus</button></td>`;
+        body.appendChild(tr);
+      });
+      body.querySelectorAll('.desc').forEach(el => el.addEventListener('input', e => { items[e.target.dataset.i].desc = e.target.value; }));
+      body.querySelectorAll('.area').forEach(el => el.addEventListener('input', e => { items[e.target.dataset.i].area = Number(e.target.value || 0); }));
+      body.querySelectorAll('.price').forEach(el => el.addEventListener('input', e => { items[e.target.dataset.i].price = Number(e.target.value || 0); }));
+      body.querySelectorAll('button').forEach(btn => btn.addEventListener('click', e => { items.splice(Number(e.target.dataset.i), 1); renderItems(); }));
+    }
+    document.getElementById('btnClear').addEventListener('click', () => { items.length = 0; renderItems(); });
+
+    // ====== GENERATE PDF (pdf‑lib) ======
+    async function generatePDF() {
+      if (!templateAB) { alert('Upload template PDF terlebih dahulu'); return; }
+      const doc = await PDFLib.PDFDocument.load(templateAB);
+      const page = doc.getPages()[0];
+      const font = await doc.embedFont(PDFLib.StandardFonts.Helvetica);
+      const fontBold = await doc.embedFont(PDFLib.StandardFonts.HelveticaBold);
+      const sz = 12;
+      const draw = (txt, x, y, fontInput, align, fontColor) => {
+        let X = x;
+        if (align === 'right') {
+          X = x - fontInput.widthOfTextAtSize(String(txt || ''), sz);
+        }
+        let color = PDFLib.rgb(0, 0, 0);
+        if (fontColor === 'white') {
+          color = PDFLib.rgb(1, 1, 1)
+        }
+        page.drawText(String(txt || ''), {
+          x: X,
+          y: toPdfY(page, y),
+          size: sz,
+          font: fontInput,
+          color: color
+        });
+      };
+
+      const dInv = val('fInvNo');
+      const dDate = val('fDate');
+      const dClient = val('fClient');
+      const dEmail = val('fEmail');
+      const dPhone = val('fPhone');
+      const dTerms = val('fTerms');
+
+      // Header/meta
+      draw(dInv, coords.invNo.x, coords.invNo.y, font);
+      draw(dDate, coords.date.x, coords.date.y, font);
+      draw(dClient, coords.client.x, coords.client.y, font, coords.client.align);
+      draw(dEmail, coords.email.x, coords.email.y, font, coords.client.align);
+      draw(dPhone, coords.phone.x, coords.phone.y, font, coords.client.align);
+      draw(dTerms, coords.terms.x, coords.terms.y, fontBold, 'left', 'white');
+
+      // Produk
+      let y = coords.products.yStart;
+      let total = 0;
+      items.forEach(it => {
+        draw(it.desc, coords.products.xDesc, y, font);
+        draw(`${it.area} m²`, coords.products.xArea, y, font);
+        draw(fmtIDR.format(it.price), coords.products.xPrice, y, font, coords.products.priceAlign);
+        total += (it.price);
+        y += coords.products.row;
+      });
+
+      // Total Price
+      draw(fmtIDR.format(total), coords.totalPrice.x, coords.totalPrice.y, fontBold, coords.totalPrice.align);
+
+      const bytes = await doc.save();
+      const blob = new Blob([bytes], { type: 'application/pdf' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `${dInv}-${dClient}.pdf`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+
+    // ====== EVENTS ======
+    document.getElementById('fTemplate').addEventListener('change', e => { const f = e.target.files[0]; if (f) loadTemplate(f); });
+    document.getElementById('btnAdd').addEventListener('click', () => { items.push({ desc: 'Produk', area: 0, price: 0 }); renderItems(); });
+    document.getElementById('btnClear').addEventListener('click', () => { items.length = 0; renderItems(); });
+    document.getElementById('btnGen').addEventListener('click', generatePDF);
+
+    (async function () {
+      renderItems();
+    })();
+  </script>
+</body>
+
+</html>
