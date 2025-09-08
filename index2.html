@@ -129,6 +129,7 @@
 
 
   <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+  <script src="https://unpkg.com/@pdf-lib/fontkit@0.0.4/dist/fontkit.umd.min.js"></script>
   <script>
     const TEMPLATE_URL = './template-new.pdf';
     const TEMPLATE_URL_PAID = './template-paid.pdf';
@@ -204,6 +205,8 @@
       }
       const templatePDF = document.getElementById('paid-status').checked ? templatePaid : templatePay;
       const doc = await PDFLib.PDFDocument.load(templatePDF);
+      doc.registerFontkit(window.fontkit);
+
       const page = doc.getPages()[0];
       const font = await doc.embedFont(await fetch('/font/Montserrat-Regular.ttf').then(r => r.arrayBuffer()));
       const fontMedium = await doc.embedFont(await fetch('/font/Montserrat-Medium.ttf').then(r => r.arrayBuffer()));
