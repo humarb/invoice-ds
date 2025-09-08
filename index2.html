@@ -106,17 +106,45 @@
         </div>
 
         <hr class="h-px bg-gray-400 border-0 sm:col-span-2">
-        <div class="flex gap-x-4 sm:col-span-2">
-          <div class="flex h-6 items-center">
-            <div
-              class="group relative inline-flex w-8 shrink-0 rounded-full bg-gray-200 p-px inset-ring inset-ring-white/10 outline-offset-2 outline-blue-950 transition-colors duration-200 ease-in-out has-checked:bg-blue-950 has-focus-visible:outline-2">
-              <span
-                class="size-4 rounded-full bg-white shadow-xs ring-1 ring-gray-400 transition-transform duration-200 ease-in-out group-has-checked:translate-x-3.5"></span>
-              <input id="paid-status" type="checkbox" name="paid-status"
-                class="absolute inset-0 appearance-none focus:outline-hidden" />
+        <div class="sm:col-span-2">
+          <div class="grid grid-cols-3 gap-2">
+            <div class="flex gap-x-4 col-span-3 md:col-span-1">
+              <div class="flex h-6 items-center">
+                <div
+                  class="group relative inline-flex w-8 shrink-0 rounded-full bg-gray-200 p-px inset-ring inset-ring-white/10 outline-offset-2 outline-blue-950 transition-colors duration-200 ease-in-out has-checked:bg-blue-950 has-focus-visible:outline-2">
+                  <span
+                    class="size-4 rounded-full bg-white shadow-xs ring-1 ring-gray-400 transition-transform duration-200 ease-in-out group-has-checked:translate-x-3.5"></span>
+                  <input id="paid-status" type="checkbox" name="paid-status"
+                    class="absolute inset-0 appearance-none focus:outline-hidden" />
+                </div>
+              </div>
+              <label for="paid-status" class="block text-sm/6 font-semibold">Paid Status</label>
+            </div>
+            <div class="flex gap-x-4 col-span-3 md:col-span-1">
+              <div class="flex h-6 items-center">
+                <div
+                  class="group relative inline-flex w-8 shrink-0 rounded-full bg-gray-200 p-px inset-ring inset-ring-white/10 outline-offset-2 outline-blue-950 transition-colors duration-200 ease-in-out has-checked:bg-blue-950 has-focus-visible:outline-2">
+                  <span
+                    class="size-4 rounded-full bg-white shadow-xs ring-1 ring-gray-400 transition-transform duration-200 ease-in-out group-has-checked:translate-x-3.5"></span>
+                  <input id="tax" type="checkbox" name="tax"
+                    class="absolute inset-0 appearance-none focus:outline-hidden" />
+                </div>
+              </div>
+              <label for="tax" class="block text-sm/6 font-semibold">Tax</label>
+            </div>
+            <div class="flex gap-x-4 col-span-3 md:col-span-1">
+              <div class="flex h-6 items-center">
+                <div
+                  class="group relative inline-flex w-8 shrink-0 rounded-full bg-gray-200 p-px inset-ring inset-ring-white/10 outline-offset-2 outline-blue-950 transition-colors duration-200 ease-in-out has-checked:bg-blue-950 has-focus-visible:outline-2">
+                  <span
+                    class="size-4 rounded-full bg-white shadow-xs ring-1 ring-gray-400 transition-transform duration-200 ease-in-out group-has-checked:translate-x-3.5"></span>
+                  <input id="discount" type="checkbox" name="discount"
+                    class="absolute inset-0 appearance-none focus:outline-hidden" />
+                </div>
+              </div>
+              <label for="discount" class="block text-sm/6 font-semibold">Discount</label>
             </div>
           </div>
-          <label for="paid-status" class="block text-sm/6 font-semibold">Paid Status</label>
         </div>
       </div>
       <div class="mt-10">
@@ -140,11 +168,11 @@
     const coords = {
       invNo: { x: 470, y: 110 },
       invDate: { x: 470, y: 126.5 },
-      client: { x: 30, y: 234 },
-      email: { x: 30, y: 249 },
-      phone: { x: 30, y: 264 },
+      client: { x: 30, y: 240 },
+      email: { x: 30, y: 255 },
+      phone: { x: 30, y: 270 },
       terms: { x: 470, y: 142 },
-      products: { yStart: 368, row: 25, xDesc: 30, xArea: 428, xPrice: 550, priceAlign: 'right' },
+      products: { yStart: 368, row: 25, xDesc: 30, xArea: 425, xPrice: 550, priceAlign: 'right' },
       totalPrice: { x: 550, y: 680, align: 'right' }
     };
 
@@ -211,17 +239,16 @@
       const font = await doc.embedFont(await fetch('/font/Montserrat-Regular.ttf').then(r => r.arrayBuffer()));
       const fontMedium = await doc.embedFont(await fetch('/font/Montserrat-Medium.ttf').then(r => r.arrayBuffer()));
       const fontBold = await doc.embedFont(await fetch('/font/Montserrat-Bold.ttf').then(r => r.arrayBuffer()));
-      const sz = 12;
-      const draw = (txt, x, y, fontInput, align) => {
+      const draw = (txt, x, y, fontInput, fontSize, align) => {
         let X = x;
         if (align === 'right') {
-          X = x - fontInput.widthOfTextAtSize(String(txt || ''), sz);
+          X = x - fontInput.widthOfTextAtSize(String(txt || ''), fontSize);
         }
         let color = PDFLib.rgb(0, 0, 0);
         page.drawText(String(txt || ''), {
           x: X,
           y: toPdfY(page, y),
-          size: sz,
+          size: fontSize,
           font: fontInput,
           color: color
         });
@@ -234,24 +261,28 @@
       const cPhone = val('phone');
       const terms = val('p-terms');
 
-      draw(invNo, coords.invNo.x, coords.invNo.y, font);
-      draw(invDate, coords.invDate.x, coords.invDate.y, font);
-      draw(cName, coords.client.x, coords.client.y, fontBold);
-      draw(cEmail, coords.email.x, coords.email.y, fontMedium);
-      draw(cPhone, coords.phone.x, coords.phone.y, fontMedium);
-      draw(`${terms} DAYS`, coords.terms.x, coords.terms.y, font);
+      const date = new Date(terms);
+      date.setDate(date.getDate() + 7);
+      const newDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+
+      draw(invNo, coords.invNo.x, coords.invNo.y, font, 12);
+      draw(invDate, coords.invDate.x, coords.invDate.y, font, 12);
+      draw(newDate, coords.terms.x, coords.terms.y, font, 12);
+      draw(cName, coords.client.x, coords.client.y, fontBold, 14);
+      draw(cEmail, coords.email.x, coords.email.y, fontMedium, 14);
+      draw(cPhone, coords.phone.x, coords.phone.y, fontMedium, 14);
 
       let y = coords.products.yStart;
       let total = 0;
       items.forEach(it => {
-        draw(it.desc, coords.products.xDesc, y, fontMedium);
-        draw(`${it.area} m²`, coords.products.xArea, y, fontMedium);
-        draw(fmtIDR.format(it.price), coords.products.xPrice, y, fontMedium, coords.products.priceAlign);
+        draw(it.desc, coords.products.xDesc, y, fontMedium, 14);
+        draw(`${it.area} m²`, coords.products.xArea, y, fontMedium, 14);
+        draw(fmtIDR.format(it.price), coords.products.xPrice, y, fontMedium, 14, coords.products.priceAlign);
         total += (it.price);
         y += coords.products.row;
       });
 
-      draw(fmtIDR.format(total), coords.totalPrice.x, coords.totalPrice.y, fontBold, coords.totalPrice.align);
+      draw(fmtIDR.format(total), coords.totalPrice.x, coords.totalPrice.y, fontBold, 14, coords.totalPrice.align);
 
       const bytes = await doc.save();
       const blob = new Blob([bytes], { type: 'application/pdf' });
