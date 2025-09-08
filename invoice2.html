@@ -162,8 +162,9 @@
 </head>
 
 <body>
-  <header>Invoice Dinus Studio</header>
+  <header>Invoice Maker – Kalibrasi Koordinat (tanpa server)</header>
   <div class="wrap">
+    <!-- LEFT: FORM & KOORDINAT -->
     <section class="card">
       <div class="body">
         <h2>1) Upload Template PDF</h2>
@@ -199,7 +200,22 @@
         </table>
 
         <div class="hr"></div>
+        <h2>4) Koordinat (X/Y)</h2>
+        <div id="coords"><!-- diisi via JS --></div>
+        <p class="note">Nama Client, Email, dan No HP menggunakan perataan kanan (right‑align). Produk diatur per kolom
+          (Description, Area, Price), termasuk posisi Total Price.</p>
+
+        <div class="hr"></div>
         <div class="row"><button class="btn" id="btnGen" disabled>Generate & Download PDF</button></div>
+      </div>
+    </section>
+
+    <!-- RIGHT: PREVIEW -->
+    <section class="card">
+      <div class="body">
+        <canvas id="pdfCanvas"></canvas>
+        <p class="note">Teks merah = overlay preview di atas template. X/Y bisa diatur di panel kiri dan akan
+          auto‑refresh.</p>
       </div>
     </section>
   </div>
@@ -207,30 +223,81 @@
   <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
   <script>
-    let templateAB = null
-    const items = [];
+    // ====== STATE ======
+    let templateAB = null, pdfjsPage = null, pdfViewport = null;
+    const canvas = document.getElementById('pdfCanvas');
+    const ctx = canvas.getContext('2d');
+    const items = []; // {desc, area, price}
 
+    // Koordinat default (Y dari ATAS)
     const coords = {
-      invNo: { x: 140, y: 181 },
-      date: { x: 140, y: 202 },
-      client: { x: 540, y: 181, align: 'right' },
-      email: { x: 540, y: 202, align: 'right' },
-      phone: { x: 540, y: 223, align: 'right' },
-      terms: { x: 161, y: 773.5 },
-      products: { yStart: 320, row: 18, xDesc: 60, xArea: 378, xPrice: 538, priceAlign: 'right' },
-      totalPrice: { x: 538, y: 470, align: 'right' }
+      invNo: { x: 90, y: 120 },
+      date: { x: 330, y: 120 },
+      client: { x: 420, y: 155, align: 'right' },
+      email: { x: 420, y: 175, align: 'right' },
+      phone: { x: 420, y: 195, align: 'right' },
+      terms: { x: 90, y: 760 },
+      products: { yStart: 240, row: 18, xDesc: 90, xArea: 420, xPrice: 520, priceAlign: 'right' },
+      totalPrice: { x: 520, y: 680, align: 'right' }
     };
-
-    async function loadTemplate(file) {
-      templateAB = await file.arrayBuffer();
-      const pdf = await pdfjsLib.getDocument({ data: templateAB }).promise;
-      document.getElementById('btnGen').disabled = false;
-    }
 
     // ====== HELPERS ======
     function val(id) { return (document.getElementById(id).value || '').trim(); }
     function toPdfY(page, yTop) { return page.getHeight() - yTop; }
     const fmtIDR = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 });
+
+    // ====== BUILD KOORDINAT UI ======
+    function buildCoordsForm() {
+      const wrap = document.getElementById('coords');
+      wrap.innerHTML = '';
+
+      const fields = [
+        ['Invoice Number', 'invNo'],
+        ['Tanggal', 'date'],
+        ['Nama Client (right)', 'client'],
+        ['Email Client (right)', 'email'],
+        ['No HP Client (right)', 'phone'],
+        ['Payment Terms', 'terms']
+      ];
+
+      fields.forEach(([label, key]) => {
+        const row = document.createElement('div');
+        row.className = 'kv';
+        row.innerHTML = `<div>${label}</div><div class="xy"><input type="number" value="${coords[key].x}" data-k="${key}" data-a="x"><input type="number" value="${coords[key].y}" data-k="${key}" data-a="y"></div>`;
+        wrap.appendChild(row);
+      });
+
+      // Produk group
+      const g = document.createElement('div'); g.className = 'kv';
+      g.innerHTML = `<div>Produk Start Y</div><div><input type="number" value="${coords.products.yStart}" id="yStart"></div>`; wrap.appendChild(g);
+
+      const g2 = document.createElement('div'); g2.className = 'kv';
+      g2.innerHTML = `<div>Row Height</div><div><input type="number" value="${coords.products.row}" id="rowH"></div>`; wrap.appendChild(g2);
+
+      const cols = ['xDesc', 'xArea', 'xPrice'];
+      cols.forEach(col => {
+        const r = document.createElement('div'); r.className = 'kv';
+        r.innerHTML = `<div>${col}</div><div><input type="number" value="${coords.products[col]}" data-prod="${col}"></div>`; wrap.appendChild(r);
+      });
+
+      // Total Price coordinate
+      const tp1 = document.createElement('div'); tp1.className = 'kv';
+      tp1.innerHTML = `<div>Total Price X</div><div><input type="number" value="${coords.totalPrice.x}" id="tpX"></div>`; wrap.appendChild(tp1);
+      const tp2 = document.createElement('div'); tp2.className = 'kv';
+      tp2.innerHTML = `<div>Total Price Y</div><div><input type="number" value="${coords.totalPrice.y}" id="tpY"></div>`; wrap.appendChild(tp2);
+
+      // listeners
+      wrap.querySelectorAll('input[data-k]').forEach(inp => {
+        inp.addEventListener('input', e => { const k = e.target.dataset.k, a = e.target.dataset.a; coords[k][a] = Number(e.target.value || 0); drawOverlay(); });
+      });
+      wrap.querySelectorAll('input[data-prod]').forEach(inp => {
+        inp.addEventListener('input', e => { const c = e.target.dataset.prod; coords.products[c] = Number(e.target.value || 0); drawOverlay(); });
+      });
+      document.getElementById('yStart').addEventListener('input', e => { coords.products.yStart = Number(e.target.value || 0); drawOverlay(); });
+      document.getElementById('rowH').addEventListener('input', e => { coords.products.row = Number(e.target.value || 0); drawOverlay(); });
+      document.getElementById('tpX').addEventListener('input', e => { coords.totalPrice.x = Number(e.target.value || 0); drawOverlay(); });
+      document.getElementById('tpY').addEventListener('input', e => { coords.totalPrice.y = Number(e.target.value || 0); drawOverlay(); });
+    }
 
     // ====== ITEMS UI ======
     function renderItems() {
@@ -242,15 +309,68 @@
         <td><input value="${it.desc}" data-i="${i}" class="desc" placeholder="Nama produk"></td>
         <td><input type="number" value="${it.area}" data-i="${i}" class="area"></td>
         <td><input type="number" value="${it.price}" data-i="${i}" class="price"></td>
-        <td><button class="btn outline" data-i="${i}">Hapus</button></td>`;
+        <td><button class="btn outline" data-i="${i}">Hapus</button></td>
+      `;
         body.appendChild(tr);
       });
-      body.querySelectorAll('.desc').forEach(el => el.addEventListener('input', e => { items[e.target.dataset.i].desc = e.target.value; }));
-      body.querySelectorAll('.area').forEach(el => el.addEventListener('input', e => { items[e.target.dataset.i].area = Number(e.target.value || 0); }));
-      body.querySelectorAll('.price').forEach(el => el.addEventListener('input', e => { items[e.target.dataset.i].price = Number(e.target.value || 0); }));
-      body.querySelectorAll('button').forEach(btn => btn.addEventListener('click', e => { items.splice(Number(e.target.dataset.i), 1); renderItems(); }));
+      body.querySelectorAll('.desc').forEach(el => el.addEventListener('input', e => { items[e.target.dataset.i].desc = e.target.value; drawOverlay(); }));
+      body.querySelectorAll('.area').forEach(el => el.addEventListener('input', e => { items[e.target.dataset.i].area = Number(e.target.value || 0); drawOverlay(); }));
+      body.querySelectorAll('.price').forEach(el => el.addEventListener('input', e => { items[e.target.dataset.i].price = Number(e.target.value || 0); drawOverlay(); }));
+      body.querySelectorAll('button').forEach(btn => btn.addEventListener('click', e => { items.splice(Number(e.target.dataset.i), 1); renderItems(); drawOverlay(); }));
     }
-    document.getElementById('btnClear').addEventListener('click', () => { items.length = 0; renderItems(); });
+
+    document.getElementById('btnAdd').addEventListener('click', () => { items.push({ desc: 'Produk', area: 0, price: 0 }); renderItems(); drawOverlay(); });
+    document.getElementById('btnClear').addEventListener('click', () => { items.length = 0; renderItems(); drawOverlay(); });
+
+    // ====== TEMPLATE PREVIEW (PDF.js) ======
+    async function loadTemplate(file) {
+      templateAB = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: templateAB }).promise;
+      pdfjsPage = await pdf.getPage(1);
+      pdfViewport = pdfjsPage.getViewport({ scale: 1 });
+      canvas.width = pdfViewport.width; canvas.height = pdfViewport.height;
+      await pdfjsPage.render({ canvasContext: ctx, viewport: pdfViewport }).promise;
+      drawOverlay();
+      document.getElementById('btnGen').disabled = false;
+    }
+    function renderPage() { return pdfjsPage.render({ canvasContext: ctx, viewport: pdfViewport }).promise; }
+
+    // ====== DRAW HELPERS ======
+    function drawText(ctx, txt, x, y, align) { ctx.save(); ctx.fillStyle = 'red'; ctx.font = '12px Helvetica'; ctx.textAlign = align || 'left'; ctx.fillText(txt, x, y); ctx.restore(); }
+
+    function drawOverlay() {
+      if (!templateAB) return;
+      renderPage().then(() => {
+        const dInv = val('fInvNo') || 'INV-0001';
+        const dDate = val('fDate') ? new Date(val('fDate') + 'T00:00:00').toLocaleDateString('id-ID') : '—';
+        const dClient = val('fClient') || 'CLIENT';
+        const dEmail = val('fEmail') || 'email@klien.com';
+        const dPhone = val('fPhone') || '08xxx';
+        const dTerms = val('fTerms') || '';
+
+        // Header
+        drawText(ctx, dInv, coords.invNo.x, coords.invNo.y);
+        drawText(ctx, dDate, coords.date.x, coords.date.y);
+        drawText(ctx, dClient, coords.client.x, coords.client.y);
+        drawText(ctx, dEmail, coords.email.x, coords.email.y);
+        drawText(ctx, dPhone, coords.phone.x, coords.phone.y);
+        drawText(ctx, dTerms, coords.terms.x, coords.terms.y);
+
+        // Produk rows
+        let y = coords.products.yStart;
+        let total = 0;
+        items.forEach(it => {
+          drawText(ctx, it.desc, coords.products.xDesc, y);
+          drawText(ctx, (it.area ? String(it.area) : '-'), coords.products.xArea, y);
+          drawText(ctx, fmtIDR.format(it.price || 0), coords.products.xPrice, y, coords.products.priceAlign);
+          total += (it.price || 0);
+          y += coords.products.row; // turun ke baris berikutnya (origin top-left)
+        });
+
+        // Total Price
+        drawText(ctx, fmtIDR.format(total), coords.totalPrice.x, coords.totalPrice.y, coords.totalPrice.align);
+      });
+    }
 
     // ====== GENERATE PDF (pdf‑lib) ======
     async function generatePDF() {
@@ -258,71 +378,57 @@
       const doc = await PDFLib.PDFDocument.load(templateAB);
       const page = doc.getPages()[0];
       const font = await doc.embedFont(PDFLib.StandardFonts.Helvetica);
-      const fontBold = await doc.embedFont(PDFLib.StandardFonts.HelveticaBold);
-      const sz = 12;
-      const draw = (txt, x, y, fontInput, align, fontColor) => {
-        let X = x;
-        if (align === 'right') {
-          X = x - fontInput.widthOfTextAtSize(String(txt || ''), sz);
-        }
-        let color = PDFLib.rgb(0, 0, 0);
-        if (fontColor === 'white') {
-          color = PDFLib.rgb(1, 1, 1)
-        }
-        page.drawText(String(txt || ''), {
-          x: X,
-          y: toPdfY(page, y),
-          size: sz,
-          font: fontInput,
-          color: color
-        });
+      const sz = 10;
+      const draw = (txt, x, y, align) => {
+        let X = x; if (align === 'right') { X = x - font.widthOfTextAtSize(String(txt || ''), sz); }
+        page.drawText(String(txt || ''), { x: X, y: toPdfY(page, y), size: sz, font, color: PDFLib.rgb(0, 0, 0) });
       };
 
       const dInv = val('fInvNo');
-      const dDate = val('fDate');
+      const dDate = val('fDate') ? new Date(val('fDate') + 'T00:00:00').toLocaleDateString('id-ID') : '';
       const dClient = val('fClient');
       const dEmail = val('fEmail');
       const dPhone = val('fPhone');
       const dTerms = val('fTerms');
 
       // Header/meta
-      draw(dInv, coords.invNo.x, coords.invNo.y, font);
-      draw(dDate, coords.date.x, coords.date.y, font);
-      draw(dClient, coords.client.x, coords.client.y, font, coords.client.align);
-      draw(dEmail, coords.email.x, coords.email.y, font, coords.client.align);
-      draw(dPhone, coords.phone.x, coords.phone.y, font, coords.client.align);
-      draw(dTerms, coords.terms.x, coords.terms.y, fontBold, 'left', 'white');
+      draw(dInv, coords.invNo.x, coords.invNo.y);
+      draw(dDate, coords.date.x, coords.date.y);
+      draw(dClient, coords.client.x, coords.client.y);
+      draw(dEmail, coords.email.x, coords.email.y);
+      draw(dPhone, coords.phone.x, coords.phone.y);
+      draw(dTerms, coords.terms.x, coords.terms.y);
 
       // Produk
       let y = coords.products.yStart;
       let total = 0;
       items.forEach(it => {
-        draw(it.desc, coords.products.xDesc, y, font);
-        draw(`${it.area} m²`, coords.products.xArea, y, font);
-        draw(fmtIDR.format(it.price), coords.products.xPrice, y, font, coords.products.priceAlign);
-        total += (it.price);
+        draw(it.desc, coords.products.xDesc, y);
+        draw(it.area ? String(it.area) : '-', coords.products.xArea, y);
+        draw(fmtIDR.format(it.price || 0), coords.products.xPrice, y, coords.products.priceAlign);
+        total += (it.price || 0);
         y += coords.products.row;
       });
 
       // Total Price
-      draw(fmtIDR.format(total), coords.totalPrice.x, coords.totalPrice.y, fontBold, coords.totalPrice.align);
+      draw(fmtIDR.format(total), coords.totalPrice.x, coords.totalPrice.y, coords.totalPrice.align);
 
       const bytes = await doc.save();
       const blob = new Blob([bytes], { type: 'application/pdf' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = `${dInv}-${dClient}.pdf`;
-      a.click();
-      URL.revokeObjectURL(a.href);
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = (dInv || 'invoice') + '.pdf'; a.click(); URL.revokeObjectURL(a.href);
     }
 
     // ====== EVENTS ======
     document.getElementById('fTemplate').addEventListener('change', e => { const f = e.target.files[0]; if (f) loadTemplate(f); });
-    document.getElementById('btnAdd').addEventListener('click', () => { items.push({ desc: 'Produk', area: 0, price: 0 }); renderItems(); });
-    document.getElementById('btnClear').addEventListener('click', () => { items.length = 0; renderItems(); });
     document.getElementById('btnGen').addEventListener('click', generatePDF);
+    ['fInvNo', 'fDate', 'fClient', 'fEmail', 'fPhone', 'fTerms'].forEach(id => document.getElementById(id).addEventListener('input', drawOverlay));
 
-    (async function () {
+    // init
+    (function init() {
+      buildCoordsForm();
+      renderItems();
+      // Prefill contoh satu item agar terlihat
+      items.push({ desc: 'DP Desain (Termin 1)', area: 0, price: 650000 });
       renderItems();
     })();
   </script>
