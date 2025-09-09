@@ -198,18 +198,18 @@
     }
 
     const coords = {
-      invNo: { x: 470, y: 115 },
-      invDate: { x: 470, y: 131.5 },
-      terms: { x: 470, y: 147 },
+      invNo: { x: 472, y: 115 },
+      invDate: { x: 472, y: 131.5 },
+      terms: { x: 472, y: 147 },
       client: { x: 30, y: 240 },
       email: { x: 30, y: 260 },
       phone: { x: 30, y: 280 },
-      products: { yStart: 368, row: 25, xDesc: 30, xArea: 415, xPrice: 550, priceAlign: 'right' },
+      products: { yStart: 368, row: 25, xDesc: 30, xArea: 410, xPrice: 550, priceAlign: 'right' },
       subTotal: { x: 550, y: 587, align: 'right' },
       tax: { percentage: { x: 420, y: 607 }, amount: { x: 550, y: 607, align: 'right' } },
       disc: { percentage: { x: 420, y: 627 }, amount: { x: 550, y: 627, align: 'right' } },
       totalPrice: { x: 550, y: 677, align: 'right' },
-      bank: { type: { x: 30, y: 590 }, name: { x: 30, y: 615 }, no: { x: 30, y: 630 } }
+      bank: { type: { x: 30, y: 590 }, name: { x: 30, y: 610 }, no: { x: 30, y: 630 } }
     };
 
     function val(id) {
@@ -275,18 +275,18 @@
       const font = await doc.embedFont(await fetch('/font/Montserrat-Regular.ttf').then(r => r.arrayBuffer()));
       const fontMedium = await doc.embedFont(await fetch('/font/Montserrat-Medium.ttf').then(r => r.arrayBuffer()));
       const fontBold = await doc.embedFont(await fetch('/font/Montserrat-Bold.ttf').then(r => r.arrayBuffer()));
-      const draw = (txt, x, y, fontInput, fontSize, align) => {
+      const draw = (txt, x, y, fontInput, fontSize, align, fontColor = PDFLib.rgb(0, 0, 0)) => {
         let X = x;
         if (align === 'right') {
           X = x - fontInput.widthOfTextAtSize(String(txt || ''), fontSize);
         }
-        let color = PDFLib.rgb(0, 0, 0);
+        //let color = PDFLib.rgb(0, 0, 0);
         page.drawText(String(txt || ''), {
           x: X,
           y: toPdfY(page, y),
           size: fontSize,
           font: fontInput,
-          color: color
+          color: fontColor
         });
       };
 
@@ -346,7 +346,7 @@
 
         total -= disc;
       } else {
-        draw('-', coords.disc.amount.x, coords.disc.amount.y, fontMedium, 14, coords.totalPrice.align);
+        draw('-', coords.disc.amount.x, coords.disc.amount.y, fontMedium, 14, coords.totalPrice.align, PDFLib.rgb(1, 0, 0));
       }
       draw(fmtIDR.format(total), coords.totalPrice.x, coords.totalPrice.y, fontBold, 14, coords.totalPrice.align);
 
