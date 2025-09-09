@@ -297,7 +297,7 @@
       const cPhone = val('phone');
       const terms = val('p-terms');
 
-      const selBank = val('back-acc');
+      const selBank = val('bank-acc');
 
       const date = new Date(invDate);
       date.setDate(date.getDate() + Number(terms));
@@ -342,9 +342,9 @@
         draw(`${val('discount-amount')}%`, coords.disc.percentage.x, coords.disc.percentage.y, fontMedium, 14);
 
         let disc = (val('discount-amount') / 100) * subTotal;
-        draw(fmtIDR.format(disc), coords.disc.amount.x, coords.disc.amount.y, fontMedium, 14, coords.totalPrice.align);
+        draw(`-${fmtIDR.format(disc)}`, coords.disc.amount.x, coords.disc.amount.y, fontMedium, 14, coords.totalPrice.align);
 
-        total += disc;
+        total -= disc;
       } else {
         draw('-', coords.disc.amount.x, coords.disc.amount.y, fontMedium, 14, coords.totalPrice.align);
       }
