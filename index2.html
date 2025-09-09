@@ -199,12 +199,12 @@
 
     const coords = {
       invNo: { x: 472, y: 115 },
-      invDate: { x: 472, y: 131.5 },
-      terms: { x: 472, y: 147 },
+      invDate: { x: 472, y: 131 },
+      terms: { x: 472, y: 146.5 },
       client: { x: 30, y: 240 },
       email: { x: 30, y: 260 },
       phone: { x: 30, y: 280 },
-      products: { yStart: 368, row: 25, xDesc: 30, xArea: 410, xPrice: 550, priceAlign: 'right' },
+      products: { yStart: 365, row: 25, xDesc: 30, xArea: 408, xPrice: 550, priceAlign: 'right' },
       subTotal: { x: 550, y: 587, align: 'right' },
       tax: { percentage: { x: 420, y: 607 }, amount: { x: 550, y: 607, align: 'right' } },
       disc: { percentage: { x: 420, y: 627 }, amount: { x: 550, y: 627, align: 'right' } },
@@ -310,9 +310,9 @@
       draw(cEmail, coords.email.x, coords.email.y, fontMedium, 14);
       draw(cPhone, coords.phone.x, coords.phone.y, fontMedium, 14);
 
-      draw(banks[selBank].type, coords.bank.type.x, coords.bank.type.y, fontBold, 14);
-      draw(banks[selBank].name, coords.bank.name.x, coords.bank.name.y, fontBold, 14);
-      draw(banks[selBank].no, coords.bank.no.x, coords.bank.no.y, fontBold, 14);
+      draw(banks[selBank].type, coords.bank.type.x, coords.bank.type.y, fontMedium, 14);
+      draw(banks[selBank].name, coords.bank.name.x, coords.bank.name.y, fontMedium, 14);
+      draw(banks[selBank].no, coords.bank.no.x, coords.bank.no.y, fontMedium, 14);
 
       let y = coords.products.yStart;
       let subTotal = 0;
@@ -327,7 +327,7 @@
 
       total += subTotal;
       draw(fmtIDR.format(subTotal), coords.subTotal.x, coords.subTotal.y, fontMedium, 14, coords.totalPrice.align);
-      if (val('tax-amount')) {
+      if (val('tax-amount') && document.getElementById('tax').checked) {
         draw(`${val('tax-amount')}%`, coords.tax.percentage.x, coords.tax.percentage.y, fontMedium, 14);
 
         let tax = (val('tax-amount') / 100) * subTotal;
@@ -338,15 +338,15 @@
         draw('-', coords.tax.amount.x, coords.tax.amount.y, fontMedium, 14, coords.totalPrice.align);
       }
 
-      if (val('discount-amount')) {
+      if (val('discount-amount') && document.getElementById('discount').checked) {
         draw(`${val('discount-amount')}%`, coords.disc.percentage.x, coords.disc.percentage.y, fontMedium, 14);
 
         let disc = (val('discount-amount') / 100) * subTotal;
-        draw(`-${fmtIDR.format(disc)}`, coords.disc.amount.x, coords.disc.amount.y, fontMedium, 14, coords.totalPrice.align);
+        draw(`-${fmtIDR.format(disc)}`, coords.disc.amount.x, coords.disc.amount.y, fontMedium, 14, coords.totalPrice.align, PDFLib.rgb(1, 0, 0));
 
         total -= disc;
       } else {
-        draw('-', coords.disc.amount.x, coords.disc.amount.y, fontMedium, 14, coords.totalPrice.align, PDFLib.rgb(1, 0, 0));
+        draw('-', coords.disc.amount.x, coords.disc.amount.y, fontMedium, 14, coords.totalPrice.align);
       }
       draw(fmtIDR.format(total), coords.totalPrice.x, coords.totalPrice.y, fontBold, 14, coords.totalPrice.align);
 
