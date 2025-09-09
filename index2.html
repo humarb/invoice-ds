@@ -29,8 +29,8 @@
           <div class="mt-2.5">
             <select id="bank-acc"
               class="block w-full rounded-md bg-gray-200 px-3.5 py-2 text-base text-black outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-950">
-              <option value="ima-mandiri" selected>Mandiri - Ima</option>
-              <option value="bca-humar">BCA Digital - Humar</option>
+              <option value="mandiriIma" selected>Mandiri - Ima</option>
+              <option value="bcaHumar">BCA Digital - Humar</option>
             </select>
           </div>
         </div>
@@ -160,16 +160,16 @@
         <div class="sm:col-span-2">
           <div class="grid grid-cols-2 gap-2">
             <div class="col-span-2 md:col-span-1 hidden" id="tax-toggle">
-              <label for="tax-amount" class="block text-sm/6 font-semibold">Tax Percentage</label>
+              <label for="tax-amount" class="block text-sm/6 font-semibold">Tax Percentage (%)</label>
               <div class="mt-2.5">
                 <input id="tax-amount" type="number"
                   class="block w-full rounded-md bg-gray-200 px-3.5 py-2 text-base text-black outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-950" />
               </div>
             </div>
             <div class="col-span-2 md:col-span-1 hidden" id="discount-toggle">
-              <label for="tax-amount" class="block text-sm/6 font-semibold">Discount Percentage</label>
+              <label for="discount-amount" class="block text-sm/6 font-semibold">Discount Percentage (%)</label>
               <div class="mt-2.5">
-                <input id="tax-amount" type="number"
+                <input id="discount-amount" type="number"
                   class="block w-full rounded-md bg-gray-200 px-3.5 py-2 text-base text-black outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-950" />
               </div>
             </div>
@@ -187,26 +187,29 @@
   <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
   <script src="https://unpkg.com/@pdf-lib/fontkit@0.0.4/dist/fontkit.umd.min.js"></script>
   <script>
-    const TEMPLATE_URL = './template-new.pdf';
+    const TEMPLATE_URL = './template.pdf';
     const TEMPLATE_URL_PAID = './template-paid.pdf';
     let templatePay = null;
     let templatePaid = null;
     const items = [];
+    const banks = {
+      mandiriIma: { type: 'Bank Mandiri', name: 'Rahima Ramadhani Wiyatasari', no: '900 00 39471140' },
+      bcaHumar: { type: 'Bank BCA Digital', name: 'Said Humar Basri', no: '0022 5335 8888' }
+    }
 
     const coords = {
-      invNo: { x: 470, y: 110 },
-      invDate: { x: 470, y: 126.5 },
+      invNo: { x: 470, y: 120 },
+      invDate: { x: 470, y: 136.5 },
+      terms: { x: 470, y: 152 },
       client: { x: 30, y: 245 },
       email: { x: 30, y: 265 },
       phone: { x: 30, y: 280 },
-      terms: { x: 470, y: 142 },
       products: { yStart: 368, row: 25, xDesc: 30, xArea: 422, xPrice: 550, priceAlign: 'right' },
-      subTotal: { x: 550, y: 679, align: 'right' },
-      taxP: { x: 550, y: 679, align: 'right' },
-      taxA: { x: 550, y: 679, align: 'right' },
-      discP: { x: 550, y: 679, align: 'right' },
-      discA: { x: 550, y: 679, align: 'right' },
-      totalPrice: { x: 550, y: 677, align: 'right' }
+      subTotal: { x: 550, y: 587, align: 'right' },
+      tax: { percentage: { x: 440, y: 607 }, amount: { x: 550, y: 607, align: 'right' } },
+      disc: { percentage: { x: 440, y: 627 }, amount: { x: 550, y: 627, align: 'right' } },
+      totalPrice: { x: 550, y: 677, align: 'right' },
+      bank: { type: { x: 30, y: 590 }, name: { x: 30, y: 615 }, no: { x: 30, y: 630 } }
     };
 
     function val(id) {
@@ -294,6 +297,8 @@
       const cPhone = val('phone');
       const terms = val('p-terms');
 
+      const selBank = val('back-acc');
+
       const date = new Date(invDate);
       date.setDate(date.getDate() + Number(terms));
       const newDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
@@ -305,16 +310,44 @@
       draw(cEmail, coords.email.x, coords.email.y, fontMedium, 14);
       draw(cPhone, coords.phone.x, coords.phone.y, fontMedium, 14);
 
+      draw(banks[selBank].type, coords.bank.type.x, coords.bank.type.y, fontBold, 14);
+      draw(banks[selBank].name, coords.bank.name.x, coords.bank.name.y, fontBold, 14);
+      draw(banks[selBank].no, coords.bank.no.x, coords.bank.no.y, fontBold, 14);
+
       let y = coords.products.yStart;
+      let subTotal = 0;
       let total = 0;
       items.forEach(it => {
         draw(it.desc, coords.products.xDesc, y, fontMedium, 12);
         draw(`${it.area} m²`, coords.products.xArea, y, fontMedium, 12);
         draw(fmtIDR.format(it.price), coords.products.xPrice, y, fontMedium, 12, coords.products.priceAlign);
-        total += (it.price);
+        subTotal += (it.price);
         y += coords.products.row;
       });
 
+      total += subTotal;
+      draw(fmtIDR.format(subTotal), coords.subTotal.x, coords.subTotal.y, fontMedium, 14, coords.totalPrice.align);
+      if (val('tax-amount')) {
+        draw(`${val('tax-amount')}%`, coords.tax.percentage.x, coords.tax.percentage.y, fontMedium, 14);
+
+        let tax = (val('tax-amount') / 100) * subTotal;
+        draw(fmtIDR.format(tax), coords.tax.amount.x, coords.tax.amount.y, fontMedium, 14, coords.totalPrice.align);
+
+        total += tax;
+      } else {
+        draw('-', coords.tax.amount.x, coords.tax.amount.y, fontMedium, 14, coords.totalPrice.align);
+      }
+
+      if (val('discount-amount')) {
+        draw(`${val('discount-amount')}%`, coords.disc.percentage.x, coords.disc.percentage.y, fontMedium, 14);
+
+        let disc = (val('discount-amount') / 100) * subTotal;
+        draw(fmtIDR.format(disc), coords.disc.amount.x, coords.disc.amount.y, fontMedium, 14, coords.totalPrice.align);
+
+        total += disc;
+      } else {
+        draw('-', coords.disc.amount.x, coords.disc.amount.y, fontMedium, 14, coords.totalPrice.align);
+      }
       draw(fmtIDR.format(total), coords.totalPrice.x, coords.totalPrice.y, fontBold, 14, coords.totalPrice.align);
 
       const bytes = await doc.save();
