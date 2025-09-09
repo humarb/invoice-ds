@@ -184,36 +184,15 @@
     </div>
   </div>
 
-  <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-  <script src="https://unpkg.com/@pdf-lib/fontkit@0.0.4/dist/fontkit.umd.min.js"></script>
   <script>
-    const TEMPLATE_URL = './template-new.pdf';
-    const TEMPLATE_URL_PAID = './template-paid.pdf';
-    let templatePay = null;
-    let templatePaid = null;
+    document.getElementById('tax').addEventListener('click', () => {
+      document.getElementById('tax-toggle').classList.toggle('hidden');
+    });
+    document.getElementById('discount').addEventListener('click', () => {
+      document.getElementById('discount-toggle').classList.toggle('hidden');
+    });
+
     const items = [];
-
-    const coords = {
-      invNo: { x: 470, y: 110 },
-      invDate: { x: 470, y: 126.5 },
-      client: { x: 30, y: 245 },
-      email: { x: 30, y: 265 },
-      phone: { x: 30, y: 280 },
-      terms: { x: 470, y: 142 },
-      products: { yStart: 368, row: 25, xDesc: 30, xArea: 422, xPrice: 550, priceAlign: 'right' },
-      subTotal: { x: 550, y: 679, align: 'right' },
-      taxP: { x: 550, y: 679, align: 'right' },
-      taxA: { x: 550, y: 679, align: 'right' },
-      discP: { x: 550, y: 679, align: 'right' },
-      discA: { x: 550, y: 679, align: 'right' },
-      totalPrice: { x: 550, y: 677, align: 'right' }
-    };
-
-    function val(id) {
-      return (document.getElementById(id).value || '').trim();
-    }
-    function toPdfY(page, yTop) { return page.getHeight() - yTop; }
-    const fmtIDR = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 });
 
     function renderItems() {
       const desc = document.getElementById('desc-form');
@@ -259,73 +238,6 @@
       }));
     }
 
-    async function generatePDF() {
-      if (!templatePay & !templatePaid) {
-        alert('Upload template PDF terlebih dahulu');
-        return;
-      }
-      const templatePDF = document.getElementById('paid-status').checked ? templatePaid : templatePay;
-      const doc = await PDFLib.PDFDocument.load(templatePDF);
-      doc.registerFontkit(window.fontkit);
-
-      const page = doc.getPages()[0];
-      const font = await doc.embedFont(await fetch('/font/Montserrat-Regular.ttf').then(r => r.arrayBuffer()));
-      const fontMedium = await doc.embedFont(await fetch('/font/Montserrat-Medium.ttf').then(r => r.arrayBuffer()));
-      const fontBold = await doc.embedFont(await fetch('/font/Montserrat-Bold.ttf').then(r => r.arrayBuffer()));
-      const draw = (txt, x, y, fontInput, fontSize, align) => {
-        let X = x;
-        if (align === 'right') {
-          X = x - fontInput.widthOfTextAtSize(String(txt || ''), fontSize);
-        }
-        let color = PDFLib.rgb(0, 0, 0);
-        page.drawText(String(txt || ''), {
-          x: X,
-          y: toPdfY(page, y),
-          size: fontSize,
-          font: fontInput,
-          color: color
-        });
-      };
-
-      const invNo = val('inv-no');
-      const invDate = val('inv-date');
-      const cName = val('name');
-      const cEmail = val('email');
-      const cPhone = val('phone');
-      const terms = val('p-terms');
-
-      const date = new Date(invDate);
-      date.setDate(date.getDate() + Number(terms));
-      const newDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-
-      draw(invNo, coords.invNo.x, coords.invNo.y, font, 12);
-      draw(invDate, coords.invDate.x, coords.invDate.y, font, 12);
-      draw(newDate, coords.terms.x, coords.terms.y, font, 12);
-      draw(cName, coords.client.x, coords.client.y, fontBold, 14);
-      draw(cEmail, coords.email.x, coords.email.y, fontMedium, 14);
-      draw(cPhone, coords.phone.x, coords.phone.y, fontMedium, 14);
-
-      let y = coords.products.yStart;
-      let total = 0;
-      items.forEach(it => {
-        draw(it.desc, coords.products.xDesc, y, fontMedium, 12);
-        draw(`${it.area} m²`, coords.products.xArea, y, fontMedium, 12);
-        draw(fmtIDR.format(it.price), coords.products.xPrice, y, fontMedium, 12, coords.products.priceAlign);
-        total += (it.price);
-        y += coords.products.row;
-      });
-
-      draw(fmtIDR.format(total), coords.totalPrice.x, coords.totalPrice.y, fontBold, 14, coords.totalPrice.align);
-
-      const bytes = await doc.save();
-      const blob = new Blob([bytes], { type: 'application/pdf' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = `${invNo}-${cName.split(' ')[0]}.pdf`;
-      a.click();
-      URL.revokeObjectURL(a.href);
-    }
-
     document.getElementById('add-items').addEventListener('click', () => {
       items.push({ desc: 'Desc', area: 0, price: 0 });
       renderItems();
@@ -334,23 +246,8 @@
       items.length = 0;
       renderItems();
     });
-    document.getElementById('tax').addEventListener('click', () => {
-      document.getElementById('tax-toggle').classList.toggle('hidden');
-    });
-    document.getElementById('discount').addEventListener('click', () => {
-      document.getElementById('discount-toggle').classList.toggle('hidden');
-    });
-    document.getElementById('generate').addEventListener('click', generatePDF);
 
     (async function () {
-      const res = await fetch(TEMPLATE_URL);
-      if (!res.ok) throw new Error('Gagal memuat template: ' + res.status);
-      templatePay = await res.arrayBuffer();
-
-      const res2 = await fetch(TEMPLATE_URL_PAID);
-      if (!res2.ok) throw new Error('Gagal memuat template: ' + res2.status);
-      templatePaid = await res2.arrayBuffer();
-
       renderItems();
     })();
   </script>
