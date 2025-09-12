@@ -22,12 +22,23 @@
     </nav>
   </header>
   <div class="isolate rounded-xl bg-gray-50 m-8 p-16 sm:p-2 lg:p-8">
-    <form action="#" method="POST" class="mx-auto m-8 max-w-4xl sm:mt-10">
+    <div class="mx-auto m-8 max-w-4xl sm:mt-10">
       <div class="grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2">
+        <div class="sm:col-span-2">
+          <label for="bank-acc" class="block text-sm/6 font-semibold">Select Bank Account</label>
+          <div class="mt-2.5">
+            <select id="bank-acc"
+              class="block w-full rounded-md bg-gray-200 px-3.5 py-2 text-base text-black outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-950">
+              <option value="mandiriIma" selected>Mandiri - Ima</option>
+              <option value="bcaHumar">BCA Digital - Humar</option>
+            </select>
+          </div>
+        </div>
+        <hr class="h-px bg-gray-400 border-0 sm:col-span-2">
         <div>
           <label for="inv-no" class="block text-sm/6 font-semibold">Invoice No.</label>
           <div class="mt-2.5">
-            <input id="inv-no" type="text" autocomplete="invoice-number"
+            <input id="inv-no" type="text" autocomplete="invoice-number" placeholder="DS-E/I-YYMM00"
               class="block w-full rounded-md bg-gray-200 px-3.5 py-2 text-base text-black outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-950" />
           </div>
         </div>
@@ -106,17 +117,63 @@
         </div>
 
         <hr class="h-px bg-gray-400 border-0 sm:col-span-2">
-        <div class="flex gap-x-4 sm:col-span-2">
-          <div class="flex h-6 items-center">
-            <div
-              class="group relative inline-flex w-8 shrink-0 rounded-full bg-gray-200 p-px inset-ring inset-ring-white/10 outline-offset-2 outline-blue-950 transition-colors duration-200 ease-in-out has-checked:bg-blue-950 has-focus-visible:outline-2">
-              <span
-                class="size-4 rounded-full bg-white shadow-xs ring-1 ring-gray-400 transition-transform duration-200 ease-in-out group-has-checked:translate-x-3.5"></span>
-              <input id="paid-status" type="checkbox" name="paid-status"
-                class="absolute inset-0 appearance-none focus:outline-hidden" />
+        <div class="sm:col-span-2">
+          <div class="grid grid-cols-3 gap-2">
+            <div class="flex gap-x-4 col-span-3 md:col-span-1">
+              <div class="flex h-6 items-center">
+                <div
+                  class="group relative inline-flex w-8 shrink-0 rounded-full bg-gray-200 p-px inset-ring inset-ring-white/10 outline-offset-2 outline-blue-950 transition-colors duration-200 ease-in-out has-checked:bg-blue-950 has-focus-visible:outline-2">
+                  <span
+                    class="size-4 rounded-full bg-white shadow-xs ring-1 ring-gray-400 transition-transform duration-200 ease-in-out group-has-checked:translate-x-3.5"></span>
+                  <input id="paid-status" type="checkbox" name="paid-status"
+                    class="absolute inset-0 appearance-none focus:outline-hidden" />
+                </div>
+              </div>
+              <label for="paid-status" class="block text-sm/6 font-semibold">Paid Status</label>
+            </div>
+            <div class="flex gap-x-4 col-span-3 md:col-span-1">
+              <div class="flex h-6 items-center">
+                <div
+                  class="group relative inline-flex w-8 shrink-0 rounded-full bg-gray-200 p-px inset-ring inset-ring-white/10 outline-offset-2 outline-blue-950 transition-colors duration-200 ease-in-out has-checked:bg-blue-950 has-focus-visible:outline-2">
+                  <span
+                    class="size-4 rounded-full bg-white shadow-xs ring-1 ring-gray-400 transition-transform duration-200 ease-in-out group-has-checked:translate-x-3.5"></span>
+                  <input id="tax" type="checkbox" name="tax"
+                    class="absolute inset-0 appearance-none focus:outline-hidden" />
+                </div>
+              </div>
+              <label for="tax" class="block text-sm/6 font-semibold">Tax</label>
+            </div>
+            <div class="flex gap-x-4 col-span-3 md:col-span-1">
+              <div class="flex h-6 items-center">
+                <div
+                  class="group relative inline-flex w-8 shrink-0 rounded-full bg-gray-200 p-px inset-ring inset-ring-white/10 outline-offset-2 outline-blue-950 transition-colors duration-200 ease-in-out has-checked:bg-blue-950 has-focus-visible:outline-2">
+                  <span
+                    class="size-4 rounded-full bg-white shadow-xs ring-1 ring-gray-400 transition-transform duration-200 ease-in-out group-has-checked:translate-x-3.5"></span>
+                  <input id="discount" type="checkbox" name="discount"
+                    class="absolute inset-0 appearance-none focus:outline-hidden" />
+                </div>
+              </div>
+              <label for="discount" class="block text-sm/6 font-semibold">Discount</label>
             </div>
           </div>
-          <label for="paid-status" class="block text-sm/6 font-semibold">Paid Status</label>
+        </div>
+        <div class="sm:col-span-2">
+          <div class="grid grid-cols-2 gap-2">
+            <div class="col-span-2 md:col-span-1 hidden" id="tax-toggle">
+              <label for="tax-amount" class="block text-sm/6 font-semibold">Tax Percentage (%)</label>
+              <div class="mt-2.5">
+                <input id="tax-amount" type="number"
+                  class="block w-full rounded-md bg-gray-200 px-3.5 py-2 text-base text-black outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-950" />
+              </div>
+            </div>
+            <div class="col-span-2 md:col-span-1 hidden" id="discount-toggle">
+              <label for="discount-amount" class="block text-sm/6 font-semibold">Discount Percentage (%)</label>
+              <div class="mt-2.5">
+                <input id="discount-amount" type="number"
+                  class="block w-full rounded-md bg-gray-200 px-3.5 py-2 text-base text-black outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-950" />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       <div class="mt-10">
@@ -124,27 +181,35 @@
           class="block w-full rounded-md cursor-pointer bg-blue-950 px-3.5 py-2.5 text-center text-sm font-semibold text-white shadow-xs hover:bg-blue-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-950">Generate
         </button>
       </div>
-    </form>
+    </div>
   </div>
 
-
   <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+  <script src="https://unpkg.com/@pdf-lib/fontkit@0.0.4/dist/fontkit.umd.min.js"></script>
   <script>
     const TEMPLATE_URL = './template.pdf';
     const TEMPLATE_URL_PAID = './template-paid.pdf';
     let templatePay = null;
     let templatePaid = null;
     const items = [];
+    const banks = {
+      mandiriIma: { type: 'Bank Mandiri', name: 'Rahima Ramadhani Wiyatasari', no: '900 00 39471140' },
+      bcaHumar: { type: 'Bank BCA Digital', name: 'Said Humar Basri', no: '0022 5335 8888' }
+    }
 
     const coords = {
-      invNo: { x: 140, y: 181 },
-      invDate: { x: 140, y: 202 },
-      client: { x: 540, y: 181, align: 'right' },
-      email: { x: 540, y: 202, align: 'right' },
-      phone: { x: 540, y: 223, align: 'right' },
-      terms: { x: 161, y: 773 },
-      products: { yStart: 320, row: 18, xDesc: 60, xArea: 378, xPrice: 538, priceAlign: 'right' },
-      totalPrice: { x: 538, y: 470, align: 'right' }
+      invNo: { x: 472, y: 115 },
+      invDate: { x: 472, y: 131 },
+      terms: { x: 472, y: 146.5 },
+      client: { x: 30, y: 240 },
+      email: { x: 30, y: 260 },
+      phone: { x: 30, y: 280 },
+      products: { yStart: 365, row: 25, xDesc: 30, xArea: 408, xPrice: 550, priceAlign: 'right' },
+      subTotal: { x: 550, y: 587, align: 'right' },
+      tax: { percentage: { x: 420, y: 607 }, amount: { x: 550, y: 607, align: 'right' } },
+      disc: { percentage: { x: 420, y: 627 }, amount: { x: 550, y: 627, align: 'right' } },
+      totalPrice: { x: 550, y: 677, align: 'right' },
+      bank: { type: { x: 30, y: 590 }, name: { x: 30, y: 610 }, no: { x: 30, y: 630 } }
     };
 
     function val(id) {
@@ -204,25 +269,24 @@
       }
       const templatePDF = document.getElementById('paid-status').checked ? templatePaid : templatePay;
       const doc = await PDFLib.PDFDocument.load(templatePDF);
+      doc.registerFontkit(window.fontkit);
+
       const page = doc.getPages()[0];
-      const font = await doc.embedFont(PDFLib.StandardFonts.Helvetica);
-      const fontBold = await doc.embedFont(PDFLib.StandardFonts.HelveticaBold);
-      const sz = 12;
-      const draw = (txt, x, y, fontInput, align, fontColor) => {
+      const font = await doc.embedFont(await fetch('/font/Montserrat-Regular.ttf').then(r => r.arrayBuffer()));
+      const fontMedium = await doc.embedFont(await fetch('/font/Montserrat-Medium.ttf').then(r => r.arrayBuffer()));
+      const fontBold = await doc.embedFont(await fetch('/font/Montserrat-Bold.ttf').then(r => r.arrayBuffer()));
+      const draw = (txt, x, y, fontInput, fontSize, align, fontColor = PDFLib.rgb(0, 0, 0)) => {
         let X = x;
         if (align === 'right') {
-          X = x - fontInput.widthOfTextAtSize(String(txt || ''), sz);
+          X = x - fontInput.widthOfTextAtSize(String(txt || ''), fontSize);
         }
-        let color = PDFLib.rgb(0, 0, 0);
-        if (fontColor === 'white') {
-          color = PDFLib.rgb(1, 1, 1)
-        }
+        //let color = PDFLib.rgb(0, 0, 0);
         page.drawText(String(txt || ''), {
           x: X,
           y: toPdfY(page, y),
-          size: sz,
+          size: fontSize,
           font: fontInput,
-          color: color
+          color: fontColor
         });
       };
 
@@ -233,30 +297,64 @@
       const cPhone = val('phone');
       const terms = val('p-terms');
 
-      draw(invNo, coords.invNo.x, coords.invNo.y, font);
-      draw(invDate, coords.invDate.x, coords.invDate.y, font);
-      draw(cName, coords.client.x, coords.client.y, font, coords.client.align);
-      draw(cEmail, coords.email.x, coords.email.y, font, coords.client.align);
-      draw(cPhone, coords.phone.x, coords.phone.y, font, coords.client.align);
-      draw(`${terms} DAYS`, coords.terms.x, coords.terms.y, fontBold, 'left', 'white');
+      const selBank = val('bank-acc');
+
+      const date = new Date(invDate);
+      date.setDate(date.getDate() + Number(terms));
+      const newDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+
+      draw(invNo, coords.invNo.x, coords.invNo.y, font, 12);
+      draw(invDate, coords.invDate.x, coords.invDate.y, font, 12);
+      draw(newDate, coords.terms.x, coords.terms.y, font, 12);
+      draw(cName, coords.client.x, coords.client.y, fontBold, 14);
+      draw(cEmail, coords.email.x, coords.email.y, fontMedium, 14);
+      draw(cPhone, coords.phone.x, coords.phone.y, fontMedium, 14);
+
+      draw(banks[selBank].type, coords.bank.type.x, coords.bank.type.y, fontMedium, 14);
+      draw(banks[selBank].name, coords.bank.name.x, coords.bank.name.y, fontMedium, 14);
+      draw(banks[selBank].no, coords.bank.no.x, coords.bank.no.y, fontMedium, 14);
 
       let y = coords.products.yStart;
+      let subTotal = 0;
       let total = 0;
       items.forEach(it => {
-        draw(it.desc, coords.products.xDesc, y, font);
-        draw(`${it.area} m²`, coords.products.xArea, y, font);
-        draw(fmtIDR.format(it.price), coords.products.xPrice, y, font, coords.products.priceAlign);
-        total += (it.price);
+        draw(it.desc, coords.products.xDesc, y, fontMedium, 12);
+        draw(`${it.area} m²`, coords.products.xArea, y, fontMedium, 12);
+        draw(fmtIDR.format(it.price), coords.products.xPrice, y, fontMedium, 12, coords.products.priceAlign);
+        subTotal += (it.price);
         y += coords.products.row;
       });
 
-      draw(fmtIDR.format(total), coords.totalPrice.x, coords.totalPrice.y, fontBold, coords.totalPrice.align);
+      total += subTotal;
+      draw(fmtIDR.format(subTotal), coords.subTotal.x, coords.subTotal.y, fontMedium, 14, coords.totalPrice.align);
+      if (val('tax-amount') && document.getElementById('tax').checked) {
+        draw(`${val('tax-amount')}%`, coords.tax.percentage.x, coords.tax.percentage.y, fontMedium, 14);
+
+        let tax = (val('tax-amount') / 100) * subTotal;
+        draw(fmtIDR.format(tax), coords.tax.amount.x, coords.tax.amount.y, fontMedium, 14, coords.totalPrice.align);
+
+        total += tax;
+      } else {
+        draw('-', coords.tax.amount.x, coords.tax.amount.y, fontMedium, 14, coords.totalPrice.align);
+      }
+
+      if (val('discount-amount') && document.getElementById('discount').checked) {
+        draw(`${val('discount-amount')}%`, coords.disc.percentage.x, coords.disc.percentage.y, fontMedium, 14);
+
+        let disc = (val('discount-amount') / 100) * subTotal;
+        draw(`-${fmtIDR.format(disc)}`, coords.disc.amount.x, coords.disc.amount.y, fontMedium, 14, coords.totalPrice.align, PDFLib.rgb(1, 0, 0));
+
+        total -= disc;
+      } else {
+        draw('-', coords.disc.amount.x, coords.disc.amount.y, fontMedium, 14, coords.totalPrice.align);
+      }
+      draw(fmtIDR.format(total), coords.totalPrice.x, coords.totalPrice.y, fontBold, 14, coords.totalPrice.align);
 
       const bytes = await doc.save();
       const blob = new Blob([bytes], { type: 'application/pdf' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = `${invNo}-${cName.split(' ')[0]}.pdf`;
+      a.download = document.getElementById('paid-status').checked ? `${invNo}-${cName.split(' ')[0]} PAID.pdf` : `${invNo}-${cName.split(' ')[0]}.pdf`;
       a.click();
       URL.revokeObjectURL(a.href);
     }
@@ -268,6 +366,12 @@
     document.getElementById('remove-items').addEventListener('click', () => {
       items.length = 0;
       renderItems();
+    });
+    document.getElementById('tax').addEventListener('click', () => {
+      document.getElementById('tax-toggle').classList.toggle('hidden');
+    });
+    document.getElementById('discount').addEventListener('click', () => {
+      document.getElementById('discount-toggle').classList.toggle('hidden');
     });
     document.getElementById('generate').addEventListener('click', generatePDF);
 
