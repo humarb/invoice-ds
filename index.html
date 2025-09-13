@@ -30,6 +30,7 @@
             <select id="bank-acc"
               class="block w-full rounded-md bg-gray-200 px-3.5 py-2 text-base text-black outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-950">
               <option value="mandiriIma" selected>Mandiri - Ima</option>
+              <option value="bcaIma" selected>Mandiri - Ima</option>
               <option value="bcaHumar">BCA Digital - Humar</option>
             </select>
           </div>
@@ -125,18 +126,6 @@
                   class="group relative inline-flex w-8 shrink-0 rounded-full bg-gray-200 p-px inset-ring inset-ring-white/10 outline-offset-2 outline-blue-950 transition-colors duration-200 ease-in-out has-checked:bg-blue-950 has-focus-visible:outline-2">
                   <span
                     class="size-4 rounded-full bg-white shadow-xs ring-1 ring-gray-400 transition-transform duration-200 ease-in-out group-has-checked:translate-x-3.5"></span>
-                  <input id="paid-status" type="checkbox" name="paid-status"
-                    class="absolute inset-0 appearance-none focus:outline-hidden" />
-                </div>
-              </div>
-              <label for="paid-status" class="block text-sm/6 font-semibold">Paid Status</label>
-            </div>
-            <div class="flex gap-x-4 col-span-3 md:col-span-1">
-              <div class="flex h-6 items-center">
-                <div
-                  class="group relative inline-flex w-8 shrink-0 rounded-full bg-gray-200 p-px inset-ring inset-ring-white/10 outline-offset-2 outline-blue-950 transition-colors duration-200 ease-in-out has-checked:bg-blue-950 has-focus-visible:outline-2">
-                  <span
-                    class="size-4 rounded-full bg-white shadow-xs ring-1 ring-gray-400 transition-transform duration-200 ease-in-out group-has-checked:translate-x-3.5"></span>
                   <input id="tax" type="checkbox" name="tax"
                     class="absolute inset-0 appearance-none focus:outline-hidden" />
                 </div>
@@ -154,6 +143,18 @@
                 </div>
               </div>
               <label for="discount" class="block text-sm/6 font-semibold">Discount</label>
+            </div>
+            <div class="flex gap-x-4 col-span-3 md:col-span-1">
+              <div class="flex h-6 items-center">
+                <div
+                  class="group relative inline-flex w-8 shrink-0 rounded-full bg-gray-200 p-px inset-ring inset-ring-white/10 outline-offset-2 outline-blue-950 transition-colors duration-200 ease-in-out has-checked:bg-blue-950 has-focus-visible:outline-2">
+                  <span
+                    class="size-4 rounded-full bg-white shadow-xs ring-1 ring-gray-400 transition-transform duration-200 ease-in-out group-has-checked:translate-x-3.5"></span>
+                  <input id="paid-status" type="checkbox" name="paid-status"
+                    class="absolute inset-0 appearance-none focus:outline-hidden" />
+                </div>
+              </div>
+              <label for="paid-status" class="block text-sm/6 font-semibold">Paid Status</label>
             </div>
           </div>
         </div>
@@ -194,6 +195,7 @@
     const items = [];
     const banks = {
       mandiriIma: { type: 'Bank Mandiri', name: 'Rahima Ramadhani Wiyatasari', no: '900 00 39471140' },
+      bcaIma: { type: 'Bank BCA', name: 'Rahima Ramadhani Wiyatasari', no: '8265255741' },
       bcaHumar: { type: 'Bank BCA Digital', name: 'Said Humar Basri', no: '0022 5335 8888' }
     }
 
